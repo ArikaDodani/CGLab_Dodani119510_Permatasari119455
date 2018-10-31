@@ -9,7 +9,7 @@
 
 using namespace std;
 using namespace glm;
- 
+
 #ifndef SCENEGRAPH_H
 #define SCENEGRAPH_H
 

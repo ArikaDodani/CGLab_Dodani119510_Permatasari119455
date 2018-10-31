@@ -16,7 +16,7 @@ class Node
 
 public:
 	Node();
-	Node(string, float, fvec3);
+	Node(string, float, fvec3,float);
 	~Node();
 	Node getParent();
 	void setParent(Node);
@@ -24,7 +24,7 @@ public:
 	list<Node> getChildrenList();
 	string getName();
 	string getPath();
-	int getDepth();
+	float getDepth();
 	mat4 getLocalTransform();
 	void setLocalTransform(mat4);
 	mat4 getWorldTransform();
@@ -32,6 +32,7 @@ public:
 	void addChildren(Node);
 	Node removeChildren(string);
 	fvec3 getTranslation();
+	float getRotation();
 
 
 private:
@@ -39,10 +40,11 @@ private:
 	list<Node> children;
 	string name;
 	string path;
-	int depth;
+	float depth;
 	fvec3 Translate_values;
 	mat4 localTransform;
 	mat4 worldTransform;
+	float rotation_degree;
 };
 
 #endif 

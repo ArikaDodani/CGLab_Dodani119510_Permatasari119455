@@ -5,13 +5,14 @@ Node::Node()
 
 }
 
-Node::Node(string planet_name, float planet_size, fvec3 localTransform_translate)
+Node::Node(string planet_name, float planet_size, fvec3 localTransform_translate, float rotation_d)
 {
 
 
 	name = planet_name;
 	depth = planet_size;
 	Translate_values = localTransform_translate;
+	rotation_degree = rotation_d;
 
 
 
@@ -52,7 +53,7 @@ string Node::getName() {
 string Node::getPath() {
 	return path;
 }
-int Node::getDepth() {
+float Node::getDepth() {
 	return depth;
 }
 mat4 Node::getLocalTransform() {
@@ -81,6 +82,11 @@ Node Node::removeChildren(string) {
 	Node temp;
 	return temp;
 
+}
+
+float Node::getRotation() {
+	return rotation_degree;
+	
 }
 
 

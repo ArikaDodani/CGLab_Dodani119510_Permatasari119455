@@ -18,11 +18,11 @@ using namespace gl;
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
-
+#include <iterator>
 #include "scenegraph.h"
 #include "Node.h"
-#include "CameraNode.h"
-#include "GeometryNode.h"
+//#include "CameraNode.h"
+//#include "GeometryNode.h"
 
 
 ApplicationSolar::ApplicationSolar(std::string const& resource_path)
@@ -48,31 +48,32 @@ ApplicationSolar::~ApplicationSolar() {
 
 void ApplicationSolar::render() const {
 
-	// Do stuff here....
+	// Here we have initialized the scene graph
 	scenegraph SolarSystem = scenegraph();
-	//Node sun = Node();
-	Node sun = Node("sun", 0.0, { 0.0f, 8.0f, 0.0f });
-	sun.setParent(sun);
-
-	sun.addChildren(Node("Mercury", 0.3, { 0.0f, 1.0f, 0.0f }));
-	sun.addChildren(Node("Venus", 0.3, { 0.0f, 1.0f, 0.0f }));
-	sun.addChildren(Node("Earth", 0.3, { 0.0f, 1.0f, 0.0f }));
-	sun.addChildren(Node("Mars", 0.3, { 0.0f, 1.0f, 0.0f }));
-	sun.addChildren(Node("Jupiter", 0.3, { 0.0f, 1.0f, 0.0f }));
-	sun.addChildren(Node("Saturn", 0.3, { 0.0f, 1.0f, 0.0f }));
-	sun.addChildren(Node("Uranus", 0.3, { 0.0f, 1.0f, 0.0f }));
-	sun.addChildren(Node("Neptune", 0.3, { 0.0f, 1.0f, 0.0f }));
-
-
-	sun.getTranslation();
+	// here the plants are being initialized. We first initialized the root node i.e the sun
+	Node sun = Node("sun", 1.0, { 0.0f, 0.0f, 0.0f },0.0);
+	// here we are adding the children to the sun. Every parameter defines the rotation, translation and the scale of the planets
+	sun.addChildren(Node("Mercury", 0.3, { 2.0f, 0.0f, 0.0f }, 1.0));
+	sun.addChildren(Node("Venus", 0.4, { 4.0f, 5.0f, 5.0f }, 1.4));
+	sun.addChildren(Node("Earth", 0.5, { 6.0f, -7.0f, 6.0f }, 0.9));
+	sun.addChildren(Node("Mars", 0.4, { 8.0f, 9.0f, 6.0f },0.5));
+	sun.addChildren(Node("Jupiter", 0.7, { 10.0f, 8.0f, -9.0f }, 0.9));
+	sun.addChildren(Node("Saturn", 0.6, { -12.0f, 10.0f, 10.0f }, 0.5));
+	sun.addChildren(Node("Uranus", 0.6, { 14.0f, -11.0f, 11.0f }, 0.5));
+	sun.addChildren(Node("Neptune", 0.4, { 16.0f, -12.0f, -12.0f }, 0.5));
+	//the first variable is the planet name, second is the float type of the planet size, third is the translation vector and the fourth is the rotation
+	//here we are storing the translation vector in a variable
+	fvec3 sun_translation = sun.getTranslation();
 
   // bind shader to upload uniforms
   glUseProgram(m_shaders.at("planet").handle);
 
-  // We have initialized the sun at the origin
-  glm::fmat4 model_matrix = glm::rotate(glm::fmat4{}, float(glfwGetTime()), glm::fvec3{0.0f, 1.0f, 0.0f});
-  model_matrix = glm::translate(model_matrix, glm::fvec3{0.0f, 0.0f, 0.0f});
-  //model_matrix = glm::scale(model_matrix, glm::fvec3{2.0,2.0,2.0 });
+  // the variables are being passed into the rotate, scale and the translation function
+  glm::fmat4 model_matrix = glm::rotate(glm::fmat4{}, float(glfwGetTime()), glm::fvec3{ 0.0f, 1.0f, 0.0f });
+  model_matrix = glm::translate(model_matrix, sun_translation);
+  // here we are collecting the size of the sun
+  float ssize = sun.getDepth();
+  model_matrix = glm::scale(model_matrix, glm::fvec3{ ssize,ssize,ssize });
   glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("ModelMatrix"),
                      1, GL_FALSE, glm::value_ptr(model_matrix));
 
@@ -90,18 +91,31 @@ void ApplicationSolar::render() const {
   // .....................................................................................................
 
   
-  // all the nodes with thier respective transformations have been looped here
-
-  //for (int i = 0; i < sun.getChildrenList().size(); i++) {
-
+  // all the nodes with thier respective transformations have been looped here. First we are storing the array of object in a list variable
+  list<Node> children_list = sun.getChildrenList();
   
-  // bind shader to upload uniforms
+  // we are using the iterator to traverse the list to find the planets and their respective properties. We are indexing children and rendering them in a loop
+  for (list<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
 
+ 
+  // bind shader to upload uniforms
+	  
  
   glUseProgram(m_shaders.at("planet").handle);
 
-	model_matrix = glm::rotate(glm::fmat4{}, float(glfwGetTime()), glm::fvec3{ 0.0f, 1.0f, 0.0f });
-  model_matrix = glm::translate(model_matrix, glm::fvec3{ 4.0f, 0.0f, -1.0f });
+  
+  // the said planet is being stored in a variable. the properties are retrived by the iterator pointer
+  Node planet_display = *children_list_iterator;
+  // now we are determining the scale of each planet and storing it in a variables
+  fvec3 planet_translaton = planet_display.getTranslation();
+  float planet_size = planet_display.getDepth();
+  // here we are retrieving the rotation
+  float planet_rotate = planet_display.getRotation();
+
+  // the variables are being passed into the rotate, scale and the translation function
+	model_matrix = glm::rotate(glm::fmat4{}, float(glfwGetTime()), glm::fvec3{0.0f, planet_rotate,0.0f });
+	model_matrix = glm::scale(model_matrix, glm::fvec3{ planet_size,planet_size,planet_size });
+  model_matrix = glm::translate(model_matrix, planet_translaton);
   glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("ModelMatrix"),
 	  1, GL_FALSE, glm::value_ptr(model_matrix));
 
@@ -116,9 +130,10 @@ void ApplicationSolar::render() const {
   // draw bound vertex array using bound shader
   glDrawElements(planet_object.draw_mode, planet_object.num_elements, model::INDEX.type, NULL);
 
-//  }
+  }
 
 }
+
 
 void ApplicationSolar::uploadView() {
   // vertices are transformed in camera space, so camera transform must be inverted
