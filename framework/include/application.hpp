@@ -47,6 +47,8 @@ class Application {
 
   // container for the shader programs
   std::map<std::string, shader_program> m_shaders{};
+  // container for the star shader programs
+  std::map<std::string, shader_program> star_shaders{};
 
   // resolution when 
   static const glm::uvec2 initial_resolution; 

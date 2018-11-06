@@ -218,6 +218,7 @@ static void watch_gl_errors(bool activate) {
           // error
           std::cerr  << " - " << glbinding::Meta::getString(error) << std::endl;
           // throw exception to allow for backtrace
+
           throw std::runtime_error("OpenGl error: " + std::string(call.function->name()));
           exit(EXIT_FAILURE);
         }
