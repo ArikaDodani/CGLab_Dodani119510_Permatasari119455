@@ -1,7 +1,8 @@
 
 #include <glbinding/callbacks.h>
-
 #include <glbinding/Binding.h>
+#include <iostream>
+using namespace std;
 
 
 namespace
@@ -123,10 +124,18 @@ void before(const FunctionCall & call)
 
 void after(const FunctionCall & call)
 {
-    if (g_afterCallback)
-    {
-        g_afterCallback(call);
-    }
+	//try {
+		if (g_afterCallback)
+	{
+			g_afterCallback(call);
+	//	}
+	}
+//	catch (...) {
+		
+		std::cout << "Callback exception" << endl;
+	
+//	}
+
 }
 
 

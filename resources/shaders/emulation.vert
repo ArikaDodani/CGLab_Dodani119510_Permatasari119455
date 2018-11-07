@@ -6,12 +6,12 @@ layout(location = 0) in vec3 in_Position;
 layout(location = 3) in vec3 in_Color;
 
 //Matrix Uniforms uploaded with glLoadMatrixf
-uniform mat4 gl_ModelViewMatrix;
+uniform mat4 gl_ViewMatrix;
 uniform mat4 gl_ProjectionMatrix;
 
 out vec3 pass_Color;
 
 void main() {
-	gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(in_Position, 1.0);
+	gl_Position = gl_ProjectionMatrix * gl_ViewMatrix * vec4(in_Position, 1.0);
 	pass_Color = in_Color;
 }

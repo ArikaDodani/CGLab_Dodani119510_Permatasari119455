@@ -4,7 +4,10 @@
 #include "application.hpp"
 #include "model.hpp"
 #include "structs.hpp"
+#include <tuple>
 #include <list>
+#include <glm/glm.hpp>
+using namespace gl;
 
 // gpu representation of model
 class ApplicationSolar : public Application {
@@ -23,6 +26,8 @@ public:
 
 	// draw all objects
 	void render() const;
+	// create the data structure of star values
+	
 
 protected:
 	void initializeShaderPrograms();
@@ -33,18 +38,13 @@ protected:
 	void uploadProjection();
 	// upload view matrix
 	void uploadView();
+	GLfloat* star_generator(GLfloat[]);
 
 	// cpu representation of model
 	model_object planet_object;
-
 	// model stars
 	model_object stars;
 
-	// empty float values initialized
-	float star_parameters[2][3] = { {0.0,0.0,0.0},{0.0,0.0,0.0} };
-	//fvec3 star_parameter[2] = { {0.0,0.0,0.0},{0.0,0.0,0.0} };
-	//list<fvec3> star_size;
-  
   // camera transform matrix
   glm::fmat4 m_view_transform;
   // camera projection matrix
