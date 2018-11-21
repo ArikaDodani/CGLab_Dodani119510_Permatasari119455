@@ -17,23 +17,21 @@ uniform vec3 origin;
 //vec4 origin = vec4(0.0, 0.0, 0.0, 1.0);
 
 
-vec3 lightColor;				// determining light color
-float lightPower;				// determining light intensity
-vec3 ambientColor;				// determining ambient color
-vec3 specColor;					// determining specular color
-float shininess;				// determining the shininess exponent
-float screenGamma; 				// determining the screen gamma
-// Assume the monitor is calibrated to the sRGB color space
+vec3 lightColor;
+float lightPower;
+vec3 ambientColor;
+vec3 specColor;
+float shininess;
+float screenGamma; // Assume the monitor is calibrated to the sRGB color space
 
-// the values below are sent to the Blinn-Phong fragment shader
-out vec3 diffuseColor1;				// sending the diffuse color
-out vec3 vertPos;				// sending the vertex position 
+// sending the vertex position and the diffuse color to the fragment shader
+out vec3 diffuseColor1;
+out vec3 vertPos;
 out vec3 pass_Normal;
-out vec3 lightPos;				// sending the light position
+out vec3 lightPos;
 
 void main(void)
 {
-	// implementing the Phong shading:
 	gl_Position = (ProjectionMatrix  * ViewMatrix * ModelMatrix) * vec4(in_Position, 1.0);
 	pass_Normal = (NormalMatrix * vec4(in_Normal, 0.0)).xyz;
 	// passing the vertex position here:

@@ -56,16 +56,16 @@ ApplicationSolar::~ApplicationSolar() {
 
 
 Node ApplicationSolar::planetGenerator() const {
-	Node root = Node("Sun", 1.0f, { 0.0f, 0.0f, 0.0f }, 0.0f);
+	Node root = Node();
 	// here we are adding the children to the sun. Every parameter defines the rotation, translation and the scale of the planets
-	root.addChildren(Node("Sun", 1.0f, { 0.0f, 0.0f, 0.0f }, 0.0f));
-	root.addChildren(Node("Mercury", 0.3f, { 0.0f, 0.0f, 4.0f }, 1.0f));
-	root.addChildren(Node("Venus", 0.4f, { 0.0f, 0.0f, 5.0f }, 1.4f));
-	root.addChildren(Node("Earth", 0.5f, { 0.0f, 2.0f, -6.0f }, 0.9f));
-	root.addChildren(Node("Mars", 0.4f, { 0.0f, 0.0f, 6.0f }, 0.5f));
-	root.addChildren(Node("Jupiter", 0.7f, { 5.0f, 0.0f, -9.0f }, 0.9f));
-	root.addChildren(Node("Saturn", 0.6f, { 0.0f, 0.0f, -10.0f }, 0.5f));
-	root.addChildren(Node("Uranus", 0.6f, { 0.0f, 0.0f, 11.0f }, 0.5f));
+	root.addChildren(Node("Sun", 1.0f, { 0.0f, 0.0f, 0.0f }, 1.0f));
+	root.addChildren(Node("Mercury", 0.3f, { 0.0f, 0.0f, -6.0f }, 1.0f));
+	root.addChildren(Node("Venus", 0.4f, { 0.0f, -1.0f, 8.0f }, 1.4f));
+	root.addChildren(Node("Earth", 0.5f, { 0.0f, 2.0f, -9.0f }, 0.9f));
+	root.addChildren(Node("Mars", 0.4f, { 9.0f, 0.0f, 13.0f }, 0.5f));
+	root.addChildren(Node("Jupiter", 0.7f, { 1.0f, 0.0f, 9.0f }, 0.9f));
+	root.addChildren(Node("Saturn", 0.6f, { 5.0f, 0.0f, -10.0f }, 0.5f));
+	root.addChildren(Node("Uranus", 0.6f, { -5.0f, 0.0f, 11.0f }, 0.5f));
 
 	return root;
 
@@ -174,7 +174,8 @@ float planet_rotate = planet_display.getRotation();
  // here the color is retrieved from the PointLightNode
  vec3 color_generator = { static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX) };
  vec3 light_color = vec3(planet_display.planetColor.getLightColor());
- float light_intensity = float(planet_display.planetColor.getLightIntensity());
+//float light_intensity = float(planet_display.planetColor.lightIntensity);
+ //cout << light_intensity << endl;
  // the color is being uploaded to the fragment shader
  glUniform3fv(m_shaders.at("planet").u_locs.at("diffuseColor"), 1, value_ptr(color_generator));
 
@@ -276,8 +277,8 @@ void ApplicationSolar::uploadUniforms() {
 void ApplicationSolar::initializeShaderPrograms() {
   // store shader program objects in container
 
-  m_shaders.emplace("planet", shader_program{{{GL_VERTEX_SHADER,m_resource_path + "shaders/simple.vert"},
-                                           {GL_FRAGMENT_SHADER, m_resource_path + "shaders/simple.frag"}}});
+  m_shaders.emplace("planet", shader_program{{{GL_VERTEX_SHADER,m_resource_path + "shaders/simple-final.vert"},
+                                           {GL_FRAGMENT_SHADER, m_resource_path + "shaders/simple-final.frag"}}});
   
   //loaded the star shaders here
   star_shaders.emplace("stars", shader_program{ {{GL_VERTEX_SHADER,m_resource_path + "shaders/vao.vert"},
