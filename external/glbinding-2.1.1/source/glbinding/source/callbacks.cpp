@@ -132,7 +132,7 @@ void after(const FunctionCall & call)
 	}
 //	catch (...) {
 		
-		std::cout << "Callback exception" << endl;
+		//std::cout << "Callback exception" << endl;
 	
 //	}
 

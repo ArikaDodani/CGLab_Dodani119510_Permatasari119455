@@ -40,12 +40,13 @@ class Application {
   // draw all objects
   virtual void render() const = 0;
 
+
  protected:
   void updateUniformLocations();
 
   std::string m_resource_path; 
 
-  // container for the shader programs
+  // container for the planet shader programs
   std::map<std::string, shader_program> m_shaders{};
   // container for the star shader programs
   std::map<std::string, shader_program> star_shaders{};

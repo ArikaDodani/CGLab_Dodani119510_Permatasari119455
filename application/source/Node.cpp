@@ -4,7 +4,7 @@ Node::Node()
 {
 
 }
-
+// the override constructor is collecting the planet properties
 Node::Node(string planet_name, float planet_size, fvec3 localTransform_translate, float rotation_d)
 {
 
@@ -30,7 +30,7 @@ Node Node::getParent()
 }
 
 void Node::setParent(Node parent_1) {
-
+	// the windows was often giving a null pointer.
 	try {
 		parent = new Node();
 		*parent = parent_1;

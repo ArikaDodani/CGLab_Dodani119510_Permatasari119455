@@ -2,11 +2,13 @@
 #define APPLICATION_SOLAR_HPP
 
 #include "application.hpp"
+#include "Node.h"
 #include "model.hpp"
 #include "structs.hpp"
 #include <tuple>
 #include <list>
 #include <glm/glm.hpp>
+#include "PointLightNode.h"
 using namespace gl;
 
 // gpu representation of model
@@ -23,10 +25,13 @@ public:
 	void mouseCallback(double pos_x, double pos_y);
 	//handle resizing
 	void resizeCallback(unsigned width, unsigned height);
-
+	Node planetColorGenerator(Node root) const;
+	Node planetGenerator() const;
 	// draw all objects
 	void render() const;
+	vec3 origin_position = { 0.0,0.0, 0.0, };
 	// create the data structure of star values
+	
 	
 
 protected:
