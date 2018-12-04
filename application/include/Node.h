@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <iostream>
 #include "PointLightNode.h"
+#include <vector>
+#include <list>
 
 using namespace std;
 using namespace glm;
@@ -38,11 +40,12 @@ public:
 	// this function returns the rotation
 	float getRotation();
 	PointLightNode planetColor;
+	list<Node> children;
 
 
 private:
 	Node *parent = {};
-	list<Node> children;
+
 	string name;
 	string path;
 	float depth; // size of the planet is being stored here

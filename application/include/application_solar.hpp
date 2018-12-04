@@ -6,9 +6,10 @@
 #include "model.hpp"
 #include "structs.hpp"
 #include <tuple>
-#include <list>
 #include <glm/glm.hpp>
 #include "PointLightNode.h"
+#include "pixel_data.hpp"
+
 using namespace gl;
 
 // gpu representation of model
@@ -30,19 +31,34 @@ public:
 	// draw all objects
 	void render() const;
 	vec3 origin_position = { 0.0,0.0, 0.0, };
-	// create the data structure of star values
+	
+	// ASSIGNMENT 4 
+	// making a function to initialize and load a cubemap for the skybox
+	GLuint loadCubemap() const;
+	GLuint skybox_vbo;
+	GLuint skybox_vao;
+
 	
 	
 
 protected:
 	void initializeShaderPrograms();
 	void initializeGeometry();
+	void initializeStarsGeometry();
 	// update uniform values
 	void uploadUniforms();
 	// upload projection matrix
 	void uploadProjection();
 	// upload view matrix
 	void uploadView();
+
+
+	// ASSIGNMENT 4 
+	// making a function to initialize and load a cubemap for the skybox
+
+	void initializeTexturePrograms();
+
+
 	GLfloat* star_generator(GLfloat[]);
 
 	// cpu representation of model
@@ -54,6 +70,10 @@ protected:
   glm::fmat4 m_view_transform;
   // camera projection matrix
   glm::fmat4 m_view_projection;
+
+  // here we create a texture ID
+  GLuint planet_texture0;
+  pixel_data image;
 };
 
 #endif
