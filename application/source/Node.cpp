@@ -45,7 +45,7 @@ Node Node::getChildren(string) {
 	Node temp;
 	return temp;
 }
-list<Node> Node::getChildrenList() {
+vector<Node> Node::getChildrenList() {
 	return children;
 }
 string Node::getName() {

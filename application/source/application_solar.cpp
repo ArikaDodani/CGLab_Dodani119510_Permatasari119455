@@ -47,7 +47,7 @@ ApplicationSolar::ApplicationSolar(std::string const& resource_path)
 	,m_view_transform{glm::translate(glm::fmat4{}, glm::fvec3{0.0f, 0.0f, 4.0f})}
 	,m_view_projection{utils::calculate_projection_matrix(initial_aspect_ratio)}
 {
-  initializeTexturePrograms();
+  //initializeTexturePrograms();
   initializeGeometry();
   initializeShaderPrograms();
   initializeStarsGeometry();
@@ -81,9 +81,9 @@ Node ApplicationSolar::planetGenerator() const {
 //ASSIGNMENT 3
 Node ApplicationSolar::planetColorGenerator(Node root1) const {
 	//the list of Nodes is being passed here and in every traversal, the light color and the light intensity is being defined
-	list<Node> children_list = root1.getChildrenList();
+	vector<Node> children_list = root1.getChildrenList();
 
-	for (list<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
+	for (vector<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
 		Node planet = *children_list_iterator;
 		if (planet.getName() == "Sun")
 		{
@@ -145,7 +145,8 @@ Node ApplicationSolar::planetColorGenerator(Node root1) const {
 
 void ApplicationSolar::render() const {
 
-
+	
+//	
 // ASSIGNMENT 4 (ADDITIONAL TASK) 
 //glDepthMask(GL_FALSE);
 //glUseProgram((m_shaders.at("planet").handle));
@@ -160,30 +161,33 @@ void ApplicationSolar::render() const {
 // all the nodes with their respective transformations have been looped here. First we are storing the array of object in a list variable
 	Node root1 = planetGenerator();
 	Node root = planetColorGenerator(root1);
-	cout << "NOW WE are uploading the planets" << endl;
-	list<Node> children_list = root.getChildrenList();
+	//for (std::vector<Node>::iterator it = root.getChildrenList().begin(); it != root.getChildrenList().end(); ++it)
+	//{
+	//	SolarSystem.push_back(*it);
+	//}
 
-for (list<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
+	//cout << "NOW WE are uploading the planets" << endl;
+	vector<Node> children_list =root.getChildrenList();
+
+//for (vector<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
 	
 	// bind shader to upload uniforms
-
+	for (int i = 0; i < children_list.size(); i++) {
 	glUseProgram(m_shaders.at("planet").handle);
 
 	  // the said planet is being stored in a variable. the properties are retrived by the iterator pointer
-	Node planet_display = *children_list_iterator;
-
+	//Node planet_display = *children_list_iterator;
+	Node planet_display = children_list[i];
 	// now we are determining the scale of each planet and storing it in a variables
 	fvec3 planet_translaton = planet_display.getTranslation();
-
 	float planet_size = planet_display.getDepth();
 	// here we are retrieving the rotation
 	float planet_rotate = planet_display.getRotation();
-
 	  // the variables are being passed into the rotate, scale and the translation function
-		glm::fmat4 model_matrix = glm::rotate(glm::fmat4{}, float(glfwGetTime()), glm::fvec3{0.0f, planet_rotate,0.0f });
-		model_matrix = glm::scale(model_matrix, glm::fvec3{ planet_size,planet_size,planet_size });
-	  model_matrix = glm::translate(model_matrix, planet_translaton);
-	  glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model_matrix));
+	glm::fmat4 model_matrix = glm::rotate(glm::fmat4{}, float(glfwGetTime()), glm::fvec3{0.0f, planet_rotate,0.0f });
+	model_matrix = glm::scale(model_matrix, glm::fvec3{ planet_size,planet_size,planet_size });
+	model_matrix = glm::translate(model_matrix, planet_translaton);
+	glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model_matrix));
 
  
 
@@ -217,13 +221,19 @@ for (list<Node>::iterator children_list_iterator = children_list.begin(); childr
 
 	 // here we want to update the uniform
 	   // Here we activate the texture and assign our first texture uni
+	 glUseProgram(m_shaders.at("planet").handle);
+	 string filename = planet_display.getName();
+	 std::cout << filename << endl;
+	 pixel_data image1 = texture_loader::file(m_resource_path + "textures/" + filename + ".jpg");
+	 cout << image1.height << " " << image1.width << endl;
+	 GLuint textureID = initializeTexturePrograms(image1, i);
 	 int sampler_location = glGetUniformLocation(m_shaders.at("planet").handle, "planet_texture0");
 	 cout << sampler_location << endl;
-	 glUniform1i(sampler_location,0);
+	 glUniform1i(sampler_location,i);
 	 // now we want to bind the texture ID to our fragment shader 
 	 //we want to send 0 because that is currently the active tecture and we want to bind the GL_TEXTURE0 with the planet_texture0 currently in the fragment shader
 	 glActiveTexture(GL_TEXTURE0);
-	 glBindTexture(GL_TEXTURE_2D, planet_texture0);
+	// glBindTexture(GL_TEXTURE_2D, planet_texture0);
 
 
 	 //cout << "NOW WE ARE BINDING THE TEXTURE" << endl;
@@ -309,20 +319,20 @@ void ApplicationSolar::uploadUniforms() {
 ///////////////////////////// intialzsation functions /////////////////////////
 
 // load texture sources
-void ApplicationSolar::initializeTexturePrograms() {
+GLuint ApplicationSolar::initializeTexturePrograms(pixel_data image, GLuint index) const{
 
 	//ASSIGNMENT 4
  // .....................................................................................................
 
   // since textures are objects, they need to be called in a function just like a VAO and VBO.
+	//for (int i = 0; i < 7; i++) {
+	//planet_texture0[index] = index;
 
-	image = texture_loader::file(m_resource_path + "textures/Mercury.jpg");
-	cout << image.height << " " << image.width << endl;
 	// to create a texture behind the scene. Here we want to generate one texture and then get the ID
-	glActiveTexture(GL_TEXTURE0);
-	glGenTextures(1, &planet_texture0);
+	glActiveTexture(GL_TEXTURE0 + index);
+	glGenTextures(1, &index);
 	// now we want to use this texture
-	glBindTexture(GL_TEXTURE_2D, planet_texture0);
+	glBindTexture(GL_TEXTURE_2D, index);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	// if the texture gets bigger for the camera
@@ -333,6 +343,8 @@ void ApplicationSolar::initializeTexturePrograms() {
 	glTexImage2D(GL_TEXTURE_2D, 0, image.channels, image.width, image.height, 0, image.channels, GL_UNSIGNED_BYTE, image.ptr());
 	//glGenerateMipmap(GL_TEXTURE_2D);
 	cout << "textures have been created" << endl;
+	return index;
+	//}
 }
 
 // load shader sources

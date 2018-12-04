@@ -25,7 +25,7 @@ public:
 	Node getParent();
 	void setParent(Node);
 	Node getChildren(string);
-	list<Node> getChildrenList();
+	vector<Node> getChildrenList();
 	string getName();
 	string getPath();
 	float getDepth(); // for now we are using depth to determine the scale. 
@@ -40,7 +40,7 @@ public:
 	// this function returns the rotation
 	float getRotation();
 	PointLightNode planetColor;
-	list<Node> children;
+	vector<Node> children;
 
 
 private:

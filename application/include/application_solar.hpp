@@ -6,6 +6,7 @@
 #include "model.hpp"
 #include "structs.hpp"
 #include <tuple>
+#include <string>
 #include <glm/glm.hpp>
 #include "PointLightNode.h"
 #include "pixel_data.hpp"
@@ -37,6 +38,8 @@ public:
 	GLuint loadCubemap() const;
 	GLuint skybox_vbo;
 	GLuint skybox_vao;
+	GLuint planet_texture0[8];
+
 
 	
 	
@@ -56,7 +59,7 @@ protected:
 	// ASSIGNMENT 4 
 	// making a function to initialize and load a cubemap for the skybox
 
-	void initializeTexturePrograms();
+	GLuint initializeTexturePrograms(pixel_data image, GLuint index) const;
 
 
 	GLfloat* star_generator(GLfloat[]);
@@ -72,8 +75,8 @@ protected:
   glm::fmat4 m_view_projection;
 
   // here we create a texture ID
-  GLuint planet_texture0;
-  pixel_data image;
+ //const pixel_data image;
+ const vector <Node> SolarSystem;
 };
 
 #endif
