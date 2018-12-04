@@ -48,9 +48,12 @@ ApplicationSolar::ApplicationSolar(std::string const& resource_path)
 	,m_view_projection{utils::calculate_projection_matrix(initial_aspect_ratio)}
 {
   //initializeTexturePrograms();
+Node root1 = planetGenerator();
+root = planetColorGenerator(root1);
   initializeGeometry();
   initializeShaderPrograms();
   initializeStarsGeometry();
+
 
 }
 
@@ -61,8 +64,8 @@ ApplicationSolar::~ApplicationSolar() {
 }
 
 
-Node ApplicationSolar::planetGenerator() const {
-	Node root = Node();
+Node ApplicationSolar::planetGenerator() {
+	//Node root = Node();
 
 	// here we are adding the children to the sun. Every parameter defines the rotation, translation and the scale of the planets
 	root.addChildren(Node("Sun", 1.0f, { 0.0f, 0.0f, 0.0f }, 1.0f));
@@ -74,14 +77,14 @@ Node ApplicationSolar::planetGenerator() const {
 	root.addChildren(Node("Saturn", 0.6f, { 5.0f, 0.0f, -10.0f }, 0.5f));
 	root.addChildren(Node("Uranus", 0.6f, { -5.0f, 0.0f, 11.0f }, 0.5f));
 
-	
+	cout << "scenegraph has been made" << endl;
 	return root;
 	
 }
 //ASSIGNMENT 3
-Node ApplicationSolar::planetColorGenerator(Node root1) const {
+Node ApplicationSolar::planetColorGenerator(Node root1)  {
 	//the list of Nodes is being passed here and in every traversal, the light color and the light intensity is being defined
-	vector<Node> children_list = root1.getChildrenList();
+	//vector<Node> children_list = root1.getChildrenList();
 
 	for (vector<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
 		Node planet = *children_list_iterator;
@@ -136,7 +139,8 @@ Node ApplicationSolar::planetColorGenerator(Node root1) const {
 			planet.planetColor.setLightIntensity(50.0);
 		}
 	}
-
+	cout << "colors has been added" << endl;
+	children_list = root.getChildrenList();
 	return root1;
 
 
@@ -145,7 +149,6 @@ Node ApplicationSolar::planetColorGenerator(Node root1) const {
 
 void ApplicationSolar::render() const {
 
-	
 //	
 // ASSIGNMENT 4 (ADDITIONAL TASK) 
 //glDepthMask(GL_FALSE);
@@ -159,20 +162,24 @@ void ApplicationSolar::render() const {
 
 
 // all the nodes with their respective transformations have been looped here. First we are storing the array of object in a list variable
-	Node root1 = planetGenerator();
-	Node root = planetColorGenerator(root1);
+	//Node root1 = planetGenerator();
+	//Node root = planetColorGenerator(root1);
+	//vector<Node> children_list = root.getChildrenList();
 	//for (std::vector<Node>::iterator it = root.getChildrenList().begin(); it != root.getChildrenList().end(); ++it)
 	//{
 	//	SolarSystem.push_back(*it);
 	//}
 
 	//cout << "NOW WE are uploading the planets" << endl;
-	vector<Node> children_list =root.getChildrenList();
+	//vector<Node> children_list =root.getChildrenList();
 
 //for (vector<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
-	
+	cout << "rendering..." << endl;
+
+
 	// bind shader to upload uniforms
 	for (int i = 0; i < children_list.size(); i++) {
+		cout << children_list.size() << endl;
 	glUseProgram(m_shaders.at("planet").handle);
 
 	  // the said planet is being stored in a variable. the properties are retrived by the iterator pointer
@@ -198,11 +205,11 @@ void ApplicationSolar::render() const {
 	 //ASSIGNMENT 3
 	 // .....................................................................................................
 	 // here the color is retrieved from the PointLightNode
-	 vec3 color_generator = { static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX) };
-	 vec3 light_color = vec3(planet_display.planetColor.getLightColor());
+	 //vec3 color_generator = { static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX) };
+	 //vec3 light_color = vec3(planet_display.planetColor.getLightColor());
 
 	 // the color is being uploaded to the fragment shader
-	 glUniform3fv(m_shaders.at("planet").u_locs.at("diffuseColor"), 1, value_ptr(color_generator));
+	 //glUniform3fv(m_shaders.at("planet").u_locs.at("diffuseColor"), 1, value_ptr(color_generator));
 
 	 if (planet_display.getName() == "Sun") {
 		 LightSource = {0.0,0.0, 0.0, 1.0};
@@ -232,11 +239,9 @@ void ApplicationSolar::render() const {
 	 glUniform1i(sampler_location,i);
 	 // now we want to bind the texture ID to our fragment shader 
 	 //we want to send 0 because that is currently the active tecture and we want to bind the GL_TEXTURE0 with the planet_texture0 currently in the fragment shader
-	 glActiveTexture(GL_TEXTURE0);
-	// glBindTexture(GL_TEXTURE_2D, planet_texture0);
+	 glActiveTexture(GL_TEXTURE0 + i);
+	glBindTexture(GL_TEXTURE_2D, textureID);
 
-
-	 //cout << "NOW WE ARE BINDING THE TEXTURE" << endl;
 	  // .....................................................................................................
 	  // bind the VAO to draw
 	  glBindVertexArray(planet_object.vertex_AO);
@@ -342,7 +347,7 @@ GLuint ApplicationSolar::initializeTexturePrograms(pixel_data image, GLuint inde
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, image.channels, image.width, image.height, 0, image.channels, GL_UNSIGNED_BYTE, image.ptr());
 	//glGenerateMipmap(GL_TEXTURE_2D);
-	cout << "textures have been created" << endl;
+	//cout << "textures have been created" << endl;
 	return index;
 	//}
 }

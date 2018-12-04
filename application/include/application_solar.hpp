@@ -27,8 +27,8 @@ public:
 	void mouseCallback(double pos_x, double pos_y);
 	//handle resizing
 	void resizeCallback(unsigned width, unsigned height);
-	Node planetColorGenerator(Node root) const;
-	Node planetGenerator() const;
+	Node planetColorGenerator(Node root);
+	Node planetGenerator();
 	// draw all objects
 	void render() const;
 	vec3 origin_position = { 0.0,0.0, 0.0, };
@@ -39,6 +39,8 @@ public:
 	GLuint skybox_vbo;
 	GLuint skybox_vao;
 	GLuint planet_texture0[8];
+	vector<Node> children_list;
+	Node root = Node();
 
 
 	
