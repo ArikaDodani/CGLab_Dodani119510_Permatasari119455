@@ -29,6 +29,7 @@ public:
 	void resizeCallback(unsigned width, unsigned height);
 	Node planetColorGenerator(Node root);
 	Node planetGenerator();
+	
 	// draw all objects
 	void render() const;
 	vec3 origin_position = { 0.0,0.0, 0.0, };
@@ -38,7 +39,9 @@ public:
 	GLuint loadCubemap() const;
 	GLuint skybox_vbo;
 	GLuint skybox_vao;
-	//GLuint planet_texture0[8];
+
+
+
 	vector<Node> children_list;
 	Node root = Node();
 
@@ -57,15 +60,19 @@ protected:
 	// upload view matrix
 	void uploadView();
 
-	void uploadPlanets(Node planet_display, int i) const;
-
-	void uploadSkyBox();
 
 
 	// ASSIGNMENT 4 
+	void uploadPlanets(Node planet_display, int i) const;
+	void uploadTexturedPlanets(Node planet_display, int i) const;
+	void uploadSkyBox();
+
 	// making a function to initialize and load a cubemap for the skybox
 	void innitializeSkyBoxGeometry();
 	GLuint initializeTexturePrograms(string filename, GLuint index) const;
+
+
+
 
 
 	GLfloat* star_generator(GLfloat[]);

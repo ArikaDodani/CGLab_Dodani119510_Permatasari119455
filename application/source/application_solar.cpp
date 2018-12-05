@@ -49,7 +49,7 @@ ApplicationSolar::ApplicationSolar(std::string const& resource_path)
 
 	//ASSIGNMENT 4 (ADDITIONAL TASK)
 	innitializeSkyBoxGeometry();
-	//uploadSkyBox();
+	uploadSkyBox();
 
 }
 
@@ -81,7 +81,6 @@ Node ApplicationSolar::planetGenerator() {
 
 // uploading all planets and doing all relevant transformations
 void ApplicationSolar::uploadPlanets(Node planet_display, int i) const {
-
 	// ASSIGNMENT 4
 	//Here we are using the planet shader for passing textures to our planets
 	glUseProgram(m_shaders.at("planet").handle);
@@ -150,13 +149,107 @@ void ApplicationSolar::uploadPlanets(Node planet_display, int i) const {
 }
 
 
+
+void ApplicationSolar::uploadTexturedPlanets(Node planet_display, int i) const {
+	// ASSIGNMENT 4
+	//Here we are using the planet shader for passing textures to our planets
+	glUseProgram(m_shaders.at("planet").handle);
+
+	// the string is collecting the planet name from the scenegraph and using the name, we are now going to read the texture files and
+	//apply them to our planets
+	//the texture ID is being collected from the initialize texture program to our planets
+	string filename = planet_display.getName();
+
+
+	// we create texture IDs and then bind those IDs to the openGL. We bind the ID's to the 2D texture points. 
+	GLuint texture_object;
+	glActiveTexture(GL_TEXTURE0 + i);
+
+	// then we generate a memory space for a texture and bind an ID to it
+	glGenTextures(1, &texture_object);
+	// since textures are objects, they need to be called in a function just like a VAO and VBO.
+	// we want to bind the texture as a 2D
+	glBindTexture(GL_TEXTURE_2D, texture_object);
+
+	// if the texture gets bigger for the camera
+	//magnification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//minification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	pixel_data image = texture_loader::file(m_resource_path + "textures/" + filename + ".jpg");
+	// to create a texture behind the scene. Here we want to generate one texture and then get the ID
+
+	glTexImage2D(GL_TEXTURE_2D, 0, image.channels, image.width, image.height, 0, image.channels, image.channel_type, image.ptr());
+	cout << filename << " texture has been created" << endl;
+
+
+	// here we update the uniforms and send data from the CPU to the GPU
+	int sampler_location = glGetUniformLocation(m_shaders.at("planet").handle, "texture_object");
+	//cout << sampler_location << endl;
+	//glUniform1i(sampler_location,i);
+	glUniform1i(glGetUniformLocation(m_shaders.at("planet").handle, "texture_object"), i);
+
+
+	//activate textures
+	glActiveTexture(GL_TEXTURE0 + i);
+	glBindTexture(GL_TEXTURE_2D, texture_object);
+
+
+
+	//ASSIGNMENT 3
+	// here the color is retrieved from the PointLightNode
+	vec3 light_color = planet_display.planet_color;
+	// the color is being uploaded to the fragment shader
+	glUniform3fv(m_shaders.at("planet").u_locs.at("diffuseColor"), 1, value_ptr(light_color));
+
+	if (planet_display.getName() == "Sun") {
+		LightSource = { 0.0,0.0, 0.0, 1.0 };
+	}
+	else {
+		LightSource = { 0.0, 0.0, 0.0, 0.0 };
+	}
+	// the origin is being nultiplied with the view matrix and then being uploaded to the fragment shader
+	glm::fmat4 view_matrix = glm::inverse(m_view_transform);
+	vec3 origin_position(view_matrix * LightSource);
+	glUniform3fv(m_shaders.at("planet").u_locs.at("origin"), 1, value_ptr(origin_position));
+
+
+
+	//ASSIGNMENT 1
+	// now we are determining the scale of each planet and storing it in a variables
+	fvec3 planet_translaton = planet_display.getTranslation();
+	float planet_size = planet_display.getDepth();
+
+	// here we are retrieving the rotation
+	float planet_rotate = planet_display.getRotation();
+
+	// the variables are being passed into the rotate, scale and the translation function
+	glm::fmat4 model_matrix = glm::rotate(glm::fmat4{}, float(glfwGetTime()), glm::fvec3{ 0.0f, planet_rotate,0.0f });
+	model_matrix = glm::scale(model_matrix, glm::fvec3{ planet_size,planet_size,planet_size });
+	model_matrix = glm::translate(model_matrix, planet_translaton);
+	glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model_matrix));
+
+	//extra matrix for normal transformation to keep them orthogonal to surface
+	glm::fmat4 normal_matrix = glm::inverseTranspose(glm::inverse(m_view_transform) * model_matrix);
+	glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(normal_matrix));
+
+	// bind the VAO to draw
+	glBindVertexArray(planet_object.vertex_AO);
+	// draw bound vertex array using bound shader
+	glDrawElements(planet_object.draw_mode, planet_object.num_elements, model::INDEX.type, NULL);
+
+}
+
+
+
 void ApplicationSolar::render() const {
 
 	cout << "rendering..." << endl;
 	// bind shader to upload uniforms
 	for (int i = 0; i < children_list.size(); i++) {
 		Node planet_display = children_list[i];
-		uploadPlanets(planet_display,i);
+		uploadTexturedPlanets(planet_display,i);
 
   }
 
@@ -234,10 +327,12 @@ GLuint ApplicationSolar::initializeTexturePrograms(string filename, GLuint index
 	//ASSIGNMENT 4
 	// we create texture IDs and then bind those IDs to the openGL. We bind the ID's to the 2D texture points. 
 	GLuint texture_object;
+	glActiveTexture(GL_TEXTURE0 + index);
+	
 	// then we generate a memory space for a texture and bind an ID to it
 	glGenTextures(1, &texture_object);
 	// since textures are objects, they need to be called in a function just like a VAO and VBO.
-	// we want t bind the texture as a 2D
+	// we want to bind the texture as a 2D
 	glBindTexture(GL_TEXTURE_2D, texture_object);
 
 	// if the texture gets bigger for the camera
@@ -250,7 +345,7 @@ GLuint ApplicationSolar::initializeTexturePrograms(string filename, GLuint index
 	// to create a texture behind the scene. Here we want to generate one texture and then get the ID
 	
 	glTexImage2D(GL_TEXTURE_2D, 0, image.channels, image.width, image.height, 0, image.channels, image.channel_type, image.ptr());
-	//cout << "textures have been created" << endl;
+	cout <<filename <<  " texture has been created" << endl;
 	return texture_object;
 
 }
@@ -481,6 +576,8 @@ void ApplicationSolar::innitializeSkyBoxGeometry()
 
 
 // ASSIGNMENT 4 (ADDITIONAL TASK) 
+//reference: https://learnopengl.com/Advanced-OpenGL/Cubemaps
+// http://antongerdelan.net/opengl/cubemaps.html
 void ApplicationSolar::uploadSkyBox() 
 {
 
@@ -505,8 +602,6 @@ void ApplicationSolar::uploadSkyBox()
 
 
 	glDepthMask(GL_FALSE);
-
-
 
 	glUseProgram(skybox_shaders.at("skybox").handle);
 
