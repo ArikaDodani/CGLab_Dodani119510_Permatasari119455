@@ -38,7 +38,7 @@ public:
 	GLuint loadCubemap() const;
 	GLuint skybox_vbo;
 	GLuint skybox_vao;
-	GLuint planet_texture0[8];
+	//GLuint planet_texture0[8];
 	vector<Node> children_list;
 	Node root = Node();
 
@@ -57,11 +57,13 @@ protected:
 	// upload view matrix
 	void uploadView();
 
+	void uploadPlanets(Node planet_display, int i) const;
+
 
 	// ASSIGNMENT 4 
 	// making a function to initialize and load a cubemap for the skybox
 
-	GLuint initializeTexturePrograms(pixel_data image, GLuint index) const;
+	GLuint initializeTexturePrograms(string filename, GLuint index) const;
 
 
 	GLfloat* star_generator(GLfloat[]);

@@ -39,8 +39,9 @@ public:
 	fvec3 getTranslation();
 	// this function returns the rotation
 	float getRotation();
-	PointLightNode planetColor;
+	PointLightNode LightNode;
 	vector<Node> children;
+	vec3 planet_color;
 
 
 private:

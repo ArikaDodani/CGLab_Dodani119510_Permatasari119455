@@ -17,7 +17,7 @@ out vec4 out_Color;					            // from planets' output colors
 out vec4 skybox1; 
 
 // A sampler here samples the color data from the image loaded or bound.
-uniform sampler2D planet_texture0;
+uniform sampler2D planet_texture;
 uniform samplerCube skybox;
 
 precision mediump float;
@@ -49,8 +49,8 @@ float lambertian = max(dot(lightDir,pass_Normal), 0.0);
 vec3 colorLinear = ambientColor + (lightColor * lightPower / distance)*((diffuseColor1 * lambertian ) + (specColor * spec ));
 
 //skybox1 = texture(skybox, skybox_tex_coords);
-//out_Color = vec4(colorLinear, 1.0);
-out_Color = texture(planet_texture0, tex_coords1);
+out_Color = vec4(colorLinear, 1.0);
+//out_Color = texture(planet_texture, tex_coords1) * vec4(colorLinear, 1.0);
 //out_Color = vec4(vec3(texture(planet_texture0,tex_coords1)), 1);
 //colour_from_tex = texture(planet_texture0, tex_coords1) * vec4(colorLinear, 1.0);
 }

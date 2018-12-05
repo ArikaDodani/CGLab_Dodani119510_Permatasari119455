@@ -35,12 +35,6 @@ using namespace gl;
 vec4 LightSource;
 
 
-struct starvalues {
-	float positions[3];
-	float colors[3];
-
-};
-
 ApplicationSolar::ApplicationSolar(std::string const& resource_path)
  :Application{resource_path}
 	,planet_object{}
@@ -81,67 +75,79 @@ Node ApplicationSolar::planetGenerator() {
 	return root;
 	
 }
-//ASSIGNMENT 3
-Node ApplicationSolar::planetColorGenerator(Node root1)  {
-	//the list of Nodes is being passed here and in every traversal, the light color and the light intensity is being defined
-	//vector<Node> children_list = root1.getChildrenList();
 
-	for (vector<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
-		Node planet = *children_list_iterator;
-		if (planet.getName() == "Sun")
-		{
-			planet.planetColor.setLightColor({ 1.0,0.0,1.0 });
-			planet.planetColor.setLightIntensity(50.0);
-		}
-		if (planet.getName() == "Mercury")
-		{
-			planet.planetColor.setLightColor({ 0.0,0.0,1.0 });
-			planet.planetColor.setLightIntensity(10.0);
-		}
-		if (planet.getName() == "Venus")
-		{
-			planet.planetColor.setLightColor({ 1.0,1.0,1.0 });
-			planet.planetColor.setLightIntensity(30.0);
-		}
 
-		if (planet.getName() == "Earth")
-		{
-			planet.planetColor.setLightColor({ 1.0,1.0,1.0 });
-			planet.planetColor.setLightIntensity(50.0);
-		}
+// uploading all planets and doing all relevant transformations
+void ApplicationSolar::uploadPlanets(Node planet_display, int i) const {
 
-		if (planet.getName() == "Mars")
-		{
-			planet.planetColor.setLightColor({ 1.0,1.0,1.0 });
-			planet.planetColor.setLightIntensity(50.0);
-		}
 
-		if (planet.getName() == "Jupiter")
-		{
-			planet.planetColor.setLightColor({ 0.0,0.0,1.0 });
-			planet.planetColor.setLightIntensity(50.0);
-		}
-		if (planet.getName() == "Saturn")
-		{
-			planet.planetColor.setLightColor({ 1.0,1.0,0.0 });
-			planet.planetColor.setLightIntensity(50.0);
-		}
+	// ASSIGNMENT 4
+	// here we want to update the uniform
+	// Here we activate the texture and assign our first texture uni
+	glUseProgram(m_shaders.at("planet").handle);
 
-		if (planet.getName() == "Uranus")
-		{
-			planet.planetColor.setLightColor({ 1.0,1.0,0.0 });
-			planet.planetColor.setLightIntensity(50.0);
-		}
+	string filename = planet_display.getName();
+	std::cout << filename << endl;
+	pixel_data image1 = texture_loader::file(m_resource_path + "textures/" + filename + ".jpg");
 
-		if (planet.getName() == "Neptune")
-		{
-			planet.planetColor.setLightColor({ 1.0,0.0,1.0 });
-			planet.planetColor.setLightIntensity(50.0);
-		}
+	//cout << image1.height << " " << image1.width << endl;
+	GLuint textureID = initializeTexturePrograms(filename, i);
+	int sampler_location = glGetUniformLocation(m_shaders.at("planet").handle, "planet_texture");
+	//cout << sampler_location << endl;
+	//glUniform1i(sampler_location,i);
+	glUniform1i(glGetUniformLocation(m_shaders.at("planet").handle, "planet_texture"), i);
+
+
+
+
+	//ASSIGNMENT 3
+	// here the color is retrieved from the PointLightNode
+	//vec3 color_generator = { static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX) };
+	vec3 light_color = planet_display.planet_color;
+	vec3 color_generator = { 0.5,0.5,0.0 };
+	// the color is being uploaded to the fragment shader
+	glUniform3fv(m_shaders.at("planet").u_locs.at("diffuseColor"), 1, value_ptr(light_color));
+
+	if (planet_display.getName() == "Sun") {
+		LightSource = { 0.0,0.0, 0.0, 1.0 };
 	}
-	cout << "colors has been added" << endl;
-	children_list = root.getChildrenList();
-	return root1;
+	else {
+		LightSource = { 0.0, 0.0, 0.0, 1.0 };
+	}
+	// the origin is being nultiplied with the view matrix and then being uploaded to the fragment shader
+	glm::fmat4 view_matrix = glm::inverse(m_view_transform);
+	vec3 origin_position(view_matrix * LightSource);
+	glUniform3fv(m_shaders.at("planet").u_locs.at("origin"), 1, value_ptr(origin_position));
+
+
+
+
+
+
+	//ASSIGNMENT 2
+	// now we are determining the scale of each planet and storing it in a variables
+	fvec3 planet_translaton = planet_display.getTranslation();
+	float planet_size = planet_display.getDepth();
+
+	// here we are retrieving the rotation
+	float planet_rotate = planet_display.getRotation();
+
+	// the variables are being passed into the rotate, scale and the translation function
+	glm::fmat4 model_matrix = glm::rotate(glm::fmat4{}, float(glfwGetTime()), glm::fvec3{ 0.0f, planet_rotate,0.0f });
+	model_matrix = glm::scale(model_matrix, glm::fvec3{ planet_size,planet_size,planet_size });
+	model_matrix = glm::translate(model_matrix, planet_translaton);
+	glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model_matrix));
+
+	//extra matrix for normal transformation to keep them orthogonal to surface
+	glm::fmat4 normal_matrix = glm::inverseTranspose(glm::inverse(m_view_transform) * model_matrix);
+	glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(normal_matrix));
+
+
+
+	 // bind the VAO to draw
+	glBindVertexArray(planet_object.vertex_AO);
+	// draw bound vertex array using bound shader
+	glDrawElements(planet_object.draw_mode, planet_object.num_elements, model::INDEX.type, NULL);
 
 
 }
@@ -149,106 +155,18 @@ Node ApplicationSolar::planetColorGenerator(Node root1)  {
 
 void ApplicationSolar::render() const {
 
-//	
-// ASSIGNMENT 4 (ADDITIONAL TASK) 
-//glDepthMask(GL_FALSE);
-//glUseProgram((m_shaders.at("planet").handle));
-//glActiveTexture(GL_TEXTURE0);
-//GLuint tex_cube = loadCubemap();
-//glBindTexture(GL_TEXTURE_CUBE_MAP, tex_cube);
-//glBindVertexArray(skybox_vao);
-//glDrawArrays(GL_TRIANGLES, 0, 36);
-//glDepthMask(GL_TRUE);
 
 
-// all the nodes with their respective transformations have been looped here. First we are storing the array of object in a list variable
-	//Node root1 = planetGenerator();
-	//Node root = planetColorGenerator(root1);
-	//vector<Node> children_list = root.getChildrenList();
-	//for (std::vector<Node>::iterator it = root.getChildrenList().begin(); it != root.getChildrenList().end(); ++it)
-	//{
-	//	SolarSystem.push_back(*it);
-	//}
-
-	//cout << "NOW WE are uploading the planets" << endl;
-	//vector<Node> children_list =root.getChildrenList();
-
-//for (vector<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
 	cout << "rendering..." << endl;
 
 
 	// bind shader to upload uniforms
 	for (int i = 0; i < children_list.size(); i++) {
-		cout << children_list.size() << endl;
-	glUseProgram(m_shaders.at("planet").handle);
-
-	  // the said planet is being stored in a variable. the properties are retrived by the iterator pointer
-	//Node planet_display = *children_list_iterator;
-	Node planet_display = children_list[i];
-	// now we are determining the scale of each planet and storing it in a variables
-	fvec3 planet_translaton = planet_display.getTranslation();
-	float planet_size = planet_display.getDepth();
-	// here we are retrieving the rotation
-	float planet_rotate = planet_display.getRotation();
-	  // the variables are being passed into the rotate, scale and the translation function
-	glm::fmat4 model_matrix = glm::rotate(glm::fmat4{}, float(glfwGetTime()), glm::fvec3{0.0f, planet_rotate,0.0f });
-	model_matrix = glm::scale(model_matrix, glm::fvec3{ planet_size,planet_size,planet_size });
-	model_matrix = glm::translate(model_matrix, planet_translaton);
-	glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model_matrix));
-
- 
-
-	 //extra matrix for normal transformation to keep them orthogonal to surface
-	 glm::fmat4 normal_matrix = glm::inverseTranspose(glm::inverse(m_view_transform) * model_matrix);
-	 glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("NormalMatrix"),1, GL_FALSE, glm::value_ptr(normal_matrix));
-
-	 //ASSIGNMENT 3
-	 // .....................................................................................................
-	 // here the color is retrieved from the PointLightNode
-	 //vec3 color_generator = { static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX) };
-	 //vec3 light_color = vec3(planet_display.planetColor.getLightColor());
-
-	 // the color is being uploaded to the fragment shader
-	 //glUniform3fv(m_shaders.at("planet").u_locs.at("diffuseColor"), 1, value_ptr(color_generator));
-
-	 if (planet_display.getName() == "Sun") {
-		 LightSource = {0.0,0.0, 0.0, 1.0};
-	 }
-	 else {
-		 LightSource = {0.0, 0.0, 0.0, 1.0};
-	 }
-	 // the origin is being nultiplied with the view matrix and then being uploaded to the fragment shader
-	 glm::fmat4 view_matrix = glm::inverse(m_view_transform);
-	 vec3 origin_position(view_matrix * LightSource);
-	 glUniform3fv(m_shaders.at("planet").u_locs.at("origin"), 1, value_ptr(origin_position));
-
-
-	 // .....................................................................................................
-	 // ASSIGNMENT 4
-
-	 // here we want to update the uniform
-	   // Here we activate the texture and assign our first texture uni
-	 glUseProgram(m_shaders.at("planet").handle);
-	 string filename = planet_display.getName();
-	 std::cout << filename << endl;
-	 pixel_data image1 = texture_loader::file(m_resource_path + "textures/" + filename + ".jpg");
-	 cout << image1.height << " " << image1.width << endl;
-	 GLuint textureID = initializeTexturePrograms(image1, i);
-	 int sampler_location = glGetUniformLocation(m_shaders.at("planet").handle, "planet_texture0");
-	 cout << sampler_location << endl;
-	 glUniform1i(sampler_location,i);
-	 // now we want to bind the texture ID to our fragment shader 
-	 //we want to send 0 because that is currently the active tecture and we want to bind the GL_TEXTURE0 with the planet_texture0 currently in the fragment shader
-	 glActiveTexture(GL_TEXTURE0 + i);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
-	  // .....................................................................................................
-	  // bind the VAO to draw
-	  glBindVertexArray(planet_object.vertex_AO);
-	  // draw bound vertex array using bound shader
-	  glDrawElements(planet_object.draw_mode, planet_object.num_elements, model::INDEX.type, NULL);
+		Node planet_display = children_list[i];
+		uploadPlanets(planet_display,i);
 
   }
+
 
 
 //Stars are drawn here
@@ -263,23 +181,21 @@ void ApplicationSolar::render() const {
 
 }
 
-// .....................................................................................................
+//ASSIGNMENT 3
 // planet color generator
-//Node ApplicationSolar::planetColorGenerator(Node root) const {
-//
-//	list<Node> children_list = root.getChildrenList();
-//
-//	for (list<Node>::iterator children_list_iterator = children_list.begin(); children_list_iterator != children_list.end(); ++children_list_iterator) {
-//		Node planet = *children_list_iterator;
-//		float intensity_generator = float((rand() % 10000) / 100);
-//		// the vec3 with random values is being generated here. The sun and all its planets are being traversed and the light intensity and its color is being input here
-//		vec3 color_generator = {static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX) ,static_cast <float> (rand()) / static_cast <float> (RAND_MAX)};
-//		planet.planetColor.setLightColor(color_generator);
-//		planet.planetColor.setLightIntensity(intensity_generator);
-//	}
-//	
-//	return root;
-//}
+Node ApplicationSolar::planetColorGenerator(Node root) {
+
+	children_list = root.getChildrenList();
+
+	for (int i = 0; i < children_list.size(); i++){
+		Node planet = children_list[i];
+		string name= children_list[i].getName();
+		float intensity_generator = float((rand() % 10000) / 100);
+		children_list[i].planet_color = { static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX) ,static_cast <float> (rand()) / static_cast <float> (RAND_MAX) };
+	}
+
+	return root;
+}
 
 
 void ApplicationSolar::uploadView() {
@@ -295,12 +211,10 @@ void ApplicationSolar::uploadView() {
 
 
   //ASSIGNMENT 3
-  // .....................................................................................................
   // the origin is uploaded to the fragment shader
   glm::vec4 Lightsource1 = view_matrix * glm::vec4(0.0, 0.0, 0.0, 0.0);
   vec3 origin_position(Lightsource1);
   glUniform3fv(m_shaders.at("planet").u_locs.at("origin"), 1, value_ptr(origin_position));
-  // .....................................................................................................
 }
 
 void ApplicationSolar::uploadProjection() {
@@ -324,31 +238,28 @@ void ApplicationSolar::uploadUniforms() {
 ///////////////////////////// intialzsation functions /////////////////////////
 
 // load texture sources
-GLuint ApplicationSolar::initializeTexturePrograms(pixel_data image, GLuint index) const{
+GLuint ApplicationSolar::initializeTexturePrograms(string filename, GLuint index) const{
 
 	//ASSIGNMENT 4
- // .....................................................................................................
-
-  // since textures are objects, they need to be called in a function just like a VAO and VBO.
-	//for (int i = 0; i < 7; i++) {
-	//planet_texture0[index] = index;
-
-	// to create a texture behind the scene. Here we want to generate one texture and then get the ID
+	// since textures are objects, they need to be called in a function just like a VAO and VBO.
+	GLuint texture_object;
 	glActiveTexture(GL_TEXTURE0 + index);
-	glGenTextures(1, &index);
+	glGenTextures(1, &texture_object);
 	// now we want to use this texture
-	glBindTexture(GL_TEXTURE_2D, index);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glBindTexture(GL_TEXTURE_2D, texture_object);
+	
 	// if the texture gets bigger for the camera
 	//magnification
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	//minification
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, image.channels, image.width, image.height, 0, image.channels, GL_UNSIGNED_BYTE, image.ptr());
-	//glGenerateMipmap(GL_TEXTURE_2D);
-	//cout << "textures have been created" << endl;
-	return index;
+
+	pixel_data image = texture_loader::file(m_resource_path + "textures/" + filename + ".jpg");
+	// to create a texture behind the scene. Here we want to generate one texture and then get the ID
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, image.channels, image.width, image.height, 0, image.channels, image.channel_type, image.ptr());
+	cout << "textures have been created" << endl;
+	return texture_object;
 	//}
 }
 
@@ -454,61 +365,61 @@ void ApplicationSolar::initializeGeometry() {
 	// ASSIGNMENT 4
 	// .....................................................................................................
 	// vertices for the skybox
-	float skyboxVertices[] = {
-		// positions          
-		-1.0f,  1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
+	//float skyboxVertices[] = {
+	//	// positions          
+	//	-1.0f,  1.0f, -1.0f,
+	//	-1.0f, -1.0f, -1.0f,
+	//	 1.0f, -1.0f, -1.0f,
+	//	 1.0f, -1.0f, -1.0f,
+	//	 1.0f,  1.0f, -1.0f,
+	//	-1.0f,  1.0f, -1.0f,
 
-		-1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
+	//	-1.0f, -1.0f,  1.0f,
+	//	-1.0f, -1.0f, -1.0f,
+	//	-1.0f,  1.0f, -1.0f,
+	//	-1.0f,  1.0f, -1.0f,
+	//	-1.0f,  1.0f,  1.0f,
+	//	-1.0f, -1.0f,  1.0f,
 
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
+	//	 1.0f, -1.0f, -1.0f,
+	//	 1.0f, -1.0f,  1.0f,
+	//	 1.0f,  1.0f,  1.0f,
+	//	 1.0f,  1.0f,  1.0f,
+	//	 1.0f,  1.0f, -1.0f,
+	//	 1.0f, -1.0f, -1.0f,
 
-		-1.0f, -1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
+	//	-1.0f, -1.0f,  1.0f,
+	//	-1.0f,  1.0f,  1.0f,
+	//	 1.0f,  1.0f,  1.0f,
+	//	 1.0f,  1.0f,  1.0f,
+	//	 1.0f, -1.0f,  1.0f,
+	//	-1.0f, -1.0f,  1.0f,
 
-		-1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f, -1.0f,
+	//	-1.0f,  1.0f, -1.0f,
+	//	 1.0f,  1.0f, -1.0f,
+	//	 1.0f,  1.0f,  1.0f,
+	//	 1.0f,  1.0f,  1.0f,
+	//	-1.0f,  1.0f,  1.0f,
+	//	-1.0f,  1.0f, -1.0f,
 
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f
-	};
+	//	-1.0f, -1.0f, -1.0f,
+	//	-1.0f, -1.0f,  1.0f,
+	//	 1.0f, -1.0f, -1.0f,
+	//	 1.0f, -1.0f, -1.0f,
+	//	-1.0f, -1.0f,  1.0f,
+	//	 1.0f, -1.0f,  1.0f
+	//};
 	// Creating a cube here 
 
-	glGenBuffers(1, &skybox_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, skybox_vbo);
-	glBufferData(GL_ARRAY_BUFFER, 3 * 36 * sizeof(float), &skyboxVertices, GL_STATIC_DRAW);
-;
-	glGenVertexArrays(1, &skybox_vao);
-	glBindVertexArray(skybox_vao);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, skybox_vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+//	glGenBuffers(1, &skybox_vbo);
+//	glBindBuffer(GL_ARRAY_BUFFER, skybox_vbo);
+//	glBufferData(GL_ARRAY_BUFFER, 3 * 36 * sizeof(float), &skyboxVertices, GL_STATIC_DRAW);
+//;
+//	glGenVertexArrays(1, &skybox_vao);
+//	glBindVertexArray(skybox_vao);
+//	glEnableVertexAttribArray(0);
+//	glBindBuffer(GL_ARRAY_BUFFER, skybox_vbo);
+//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	// .....................................................................................................
 
 

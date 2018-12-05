@@ -9,12 +9,10 @@ Node::Node()
 Node::Node(string planet_name, float planet_size, fvec3 localTransform_translate, float rotation_d)
 {
 
-
 	name = planet_name;
 	depth = planet_size;
 	Translate_values = localTransform_translate;
 	rotation_degree = rotation_d;
-
 
 
 }
@@ -33,7 +31,7 @@ Node Node::getParent()
 void Node::setParent(Node parent_1) {
 	// the windows was often giving a null pointer.
 	try {
-		parent = new Node();
+		 parent = new Node();
 		*parent = parent_1;
 	}
 	catch (...) {
