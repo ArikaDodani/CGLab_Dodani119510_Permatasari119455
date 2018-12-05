@@ -25,7 +25,7 @@ out vec3 vertPos;				// sending the vertex position
 out vec3 pass_Normal;
 out vec3 lightPos;				// sending the light position
 out vec2 tex_coords1;
-out vec3 skybox_tex_coords;
+
 
 void main(void)
 {
@@ -37,7 +37,8 @@ void main(void)
 	vertPos = vec3(ProjectionMatrix * ViewMatrix * ModelMatrix * vec4(in_Position,1.0));
 	diffuseColor1 = diffuseColor;
 	lightPos = origin; 
-
+	
+	// passing the texture coordinates into the fragment shader
 	tex_coords1 = tex_coords;
-	skybox_tex_coords = in_Position;
+
 }

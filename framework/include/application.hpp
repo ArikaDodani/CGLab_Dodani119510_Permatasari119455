@@ -51,6 +51,10 @@ class Application {
   // container for the star shader programs
   std::map<std::string, shader_program> star_shaders{};
 
+  //ASSIGNMENT 4
+	// container for the star shader programs
+  std::map<std::string, shader_program> skybox_shaders{};
+
   // resolution when 
   static const glm::uvec2 initial_resolution; 
   static const float initial_aspect_ratio; 

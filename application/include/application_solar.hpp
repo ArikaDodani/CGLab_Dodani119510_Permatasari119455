@@ -59,10 +59,12 @@ protected:
 
 	void uploadPlanets(Node planet_display, int i) const;
 
+	void uploadSkyBox();
+
 
 	// ASSIGNMENT 4 
 	// making a function to initialize and load a cubemap for the skybox
-
+	void innitializeSkyBoxGeometry();
 	GLuint initializeTexturePrograms(string filename, GLuint index) const;
 
 
