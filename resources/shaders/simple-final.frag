@@ -48,8 +48,8 @@ float lambertian = max(dot(lightDir,pass_Normal), 0.0);
 vec3 colorLinear = ambientColor + (lightColor * lightPower / distance)*((diffuseColor1 * lambertian ) + (specColor * spec ));
 
 
-//out_Color = vec4(colorLinear, 1.0);
-out_Color = texture(texture_object, tex_coords1) * vec4(colorLinear, 1.0);
+out_Color = vec4(colorLinear, 1.0);
+//out_Color = vec4(texture(texture_object, tex_coords1)) * vec4(colorLinear, 1.0);
 //out_Color = vec4(vec3(texture(planet_texture0,tex_coords1)), 1);
 //colour_from_tex = texture(planet_texture0, tex_coords1) * vec4(colorLinear, 1.0);
 }

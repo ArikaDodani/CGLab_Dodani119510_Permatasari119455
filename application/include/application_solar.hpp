@@ -41,13 +41,21 @@ public:
 	GLuint skybox_vao;
 
 
+	// ASSIGNMENT 5
+	void initializeFrameBuffer();
+	void initializeQuadGeometry();
+	void renderQuad() const;
+
+	GLuint tex_handle;
+	GLuint rb_handle;
+	GLuint fbo_handle;
+	GLint effect = 0;
+
 
 	vector<Node> children_list;
 	Node root = Node();
 
 
-	
-	
 
 protected:
 	void initializeShaderPrograms();
@@ -61,7 +69,6 @@ protected:
 	void uploadView();
 
 
-
 	// ASSIGNMENT 4 
 	void uploadPlanets(Node planet_display, int i) const;
 	void uploadTexturedPlanets(Node planet_display, int i) const;
@@ -71,25 +78,26 @@ protected:
 	void innitializeSkyBoxGeometry();
 	GLuint initializeTexturePrograms(string filename, GLuint index) const;
 
-
-
-
-
+	//ASSIGHMENT 2
 	GLfloat* star_generator(GLfloat[]);
+	// model stars
+	model_object stars;
+
 
 	// cpu representation of model
 	model_object planet_object;
-	// model stars
-	model_object stars;
+
+
+	//ASSIGNMENT 5
+	// model object of the quad
+	model_object quad_object;
 
   // camera transform matrix
   glm::fmat4 m_view_transform;
   // camera projection matrix
   glm::fmat4 m_view_projection;
 
-  // here we create a texture ID
- //const pixel_data image;
- const vector <Node> SolarSystem;
+
 };
 
 #endif

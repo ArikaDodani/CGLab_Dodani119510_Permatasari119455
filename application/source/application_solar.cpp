@@ -38,6 +38,7 @@ vec4 LightSource;
 ApplicationSolar::ApplicationSolar(std::string const& resource_path)
  :Application{resource_path}
 	,planet_object{}
+	,quad_object{}
 	,m_view_transform{glm::translate(glm::fmat4{}, glm::fvec3{0.0f, 0.0f, 4.0f})}
 	,m_view_projection{utils::calculate_projection_matrix(initial_aspect_ratio)}
 {
@@ -48,10 +49,14 @@ ApplicationSolar::ApplicationSolar(std::string const& resource_path)
 	initializeStarsGeometry();
 
 	//ASSIGNMENT 4 (ADDITIONAL TASK)
-	innitializeSkyBoxGeometry();
-	uploadSkyBox();
+	//innitializeSkyBoxGeometry();
+	//uploadSkyBox();
 
+	// ASSIGNMENT 5
+	initializeFrameBuffer();
+	initializeQuadGeometry();
 }
+
 
 ApplicationSolar::~ApplicationSolar() {
   glDeleteBuffers(1, &planet_object.vertex_BO);
@@ -88,19 +93,19 @@ void ApplicationSolar::uploadPlanets(Node planet_display, int i) const {
 	// the string is collecting the planet name from the scenegraph and using the name, we are now going to read the texture files and
 	//apply them to our planets
 	//the texture ID is being collected from the initialize texture program to our planets
-	string filename = planet_display.getName();
-	GLuint texture_object = initializeTexturePrograms(filename, i);
+	//string filename = planet_display.getName();
+	//GLuint texture_object = initializeTexturePrograms(filename, i);
 
 	// here we update the uniforms and send data from the CPU to the GPU
-	int sampler_location = glGetUniformLocation(m_shaders.at("planet").handle, "texture_object");
+	//int sampler_location = glGetUniformLocation(m_shaders.at("planet").handle, "texture_object");
 	//cout << sampler_location << endl;
 	//glUniform1i(sampler_location,i);
-	glUniform1i(glGetUniformLocation(m_shaders.at("planet").handle, "texture_object"), i);
+	//glUniform1i(glGetUniformLocation(m_shaders.at("planet").handle, "texture_object"), i);
 
 
 	//activate textures
-	glActiveTexture(GL_TEXTURE0+i);
-	glBindTexture(GL_TEXTURE_2D, texture_object );
+	//glActiveTexture(GL_TEXTURE0+i);
+	//glBindTexture(GL_TEXTURE_2D, texture_object );
 
 	
 
@@ -147,7 +152,6 @@ void ApplicationSolar::uploadPlanets(Node planet_display, int i) const {
 	glDrawElements(planet_object.draw_mode, planet_object.num_elements, model::INDEX.type, NULL);
 
 }
-
 
 
 void ApplicationSolar::uploadTexturedPlanets(Node planet_display, int i) const {
@@ -241,15 +245,21 @@ void ApplicationSolar::uploadTexturedPlanets(Node planet_display, int i) const {
 
 }
 
-
-
 void ApplicationSolar::render() const {
+
+	//ASSIGNMENT 5
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_handle);
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	renderQuad();
+
 
 	cout << "rendering..." << endl;
 	// bind shader to upload uniforms
 	for (int i = 0; i < children_list.size(); i++) {
 		Node planet_display = children_list[i];
-		uploadTexturedPlanets(planet_display,i);
+		uploadPlanets(planet_display,i);
 
   }
 
@@ -388,6 +398,14 @@ star_shaders.at("stars").u_locs["ProjectionMatrix"] = -1;
   skybox_shaders.at("skybox").u_locs["ModelMatrix"] = -1;
   skybox_shaders.at("skybox").u_locs["ViewMatrix"] = -1;
   skybox_shaders.at("skybox").u_locs["ProjectionMatrix"] = -1;
+
+
+  //ASSIGNMENT 5
+  m_shaders.emplace("quad", shader_program{ {{GL_VERTEX_SHADER,m_resource_path + "shaders/quad.vert"},
+									 {GL_FRAGMENT_SHADER, m_resource_path + "shaders/quad.frag"}} });
+  // requesting the uniform locations for quad shader
+  m_shaders.at("quad").u_locs["texture"] = -1;
+  m_shaders.at("quad").u_locs["effect"] = -1;
 
   cout << "the shaders have been initialized" << endl;
 }
@@ -574,7 +592,6 @@ void ApplicationSolar::innitializeSkyBoxGeometry()
 	cout << "the skybox geometry has been created" << endl;
 }
 
-
 // ASSIGNMENT 4 (ADDITIONAL TASK) 
 //reference: https://learnopengl.com/Advanced-OpenGL/Cubemaps
 // http://antongerdelan.net/opengl/cubemaps.html
@@ -631,8 +648,8 @@ void ApplicationSolar::uploadSkyBox()
 
 }
 
+//ASSIGNMENT 4
 GLuint ApplicationSolar::loadCubemap() const {
-	//ASSIGNMENT 4
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
@@ -655,6 +672,95 @@ GLuint ApplicationSolar::loadCubemap() const {
 	return textureID;
 
 }
+
+
+//ASSIGNMENT 5
+void ApplicationSolar::initializeFrameBuffer() {
+
+
+	// the following tutorial was referenced: https://learnopengl.com/Advanced-OpenGL/Framebuffers
+	int width = 400;
+	int height = 600;
+
+	// first we are creating and initializing the frame buffer object
+	glGenFramebuffers(1, &fbo_handle);
+	//By binding to the GL_FRAMEBUFFER target all the next read and write framebuffer operations will affect the currently bound framebuffer. 
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_handle);
+
+	// next, we have to attach atleast one buffer  and have atleast one color attachment to the buffer
+
+	// texture attachment
+	// generate texture
+	glActiveTexture(GL_TEXTURE1);
+	glGenTextures(1, &tex_handle);
+	glBindTexture(GL_TEXTURE_2D, tex_handle);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	//Now that we've created a texture we need to actually attach it to the framebuffer
+	// attaching below to currently bound framebuffer object
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_handle, 0);
+
+	//Renderbuffer objects store all the render data directly into their buffer without any conversions to texture-specific formats
+	// this makes them faster as a writeable storage medium
+	// now we generate a render buffer
+	glGenRenderbuffers(1, &rb_handle);
+	// we bind the render buffer object 
+	glBindRenderbuffer(GL_RENDERBUFFER, rb_handle);
+	// Creating a depth and stencil renderbuffer object
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+	// Now we attach the renderbuffer object
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rb_handle);
+
+
+
+
+	GLenum draw_buffer[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, draw_buffer);
+}
+
+void ApplicationSolar::renderQuad() const {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glBindVertexArray(quad_object.vertex_AO);
+	shader_program quad_program = m_shaders.at("quad");
+	glUseProgram(quad_program.handle);
+	glActiveTexture(GL_TEXTURE2);
+	glUniform1i(quad_program.u_locs.at("texture"), 2);
+	glUniform1iv(quad_program.u_locs.at("effect"), 1, &effect);
+	glDrawArrays(quad_object.draw_mode, NULL, quad_object.num_elements);
+}
+
+void ApplicationSolar::initializeQuadGeometry() {
+	std::vector<GLfloat> quad{
+		-1.0, -1.0, 0.0,
+		1.0, -1.0, 0.0,
+		-1.0,  1.0, 0.0,
+		1.0,  1.0, 0.0
+	};
+
+	glGenBuffers(1, &quad_object.vertex_BO);
+	glBindBuffer(GL_ARRAY_BUFFER, quad_object.vertex_BO);
+
+	// buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * quad.size(), quad.data(), GL_STATIC_DRAW);
+
+	// vertex array
+	glGenVertexArrays(1, &quad_object.vertex_AO);
+	glBindVertexArray(quad_object.vertex_AO);
+	glBindBuffer(GL_ARRAY_BUFFER, quad_object.vertex_BO);
+
+	// attribute array
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(float) * 3, 0);
+	quad_object.draw_mode = GL_TRIANGLE_STRIP;
+	quad_object.num_elements = GLsizei(quad.size() / 3);
+}
+
+
+
 ///////////////////////////// callback functions for window events ////////////
 
 // handle key input
@@ -665,8 +771,18 @@ void ApplicationSolar::keyCallback(int key, int action, int mods) {
   }
   else if (key == GLFW_KEY_S  && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
     m_view_transform = glm::translate(m_view_transform, glm::fvec3{0.0f, 0.0f, 0.1f});
-    uploadView();
+	uploadView();
   }
+  else if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+	  m_view_transform = translate(m_view_transform, fvec3{ -0.2f, 0.0f, 0.0f });
+	  uploadView();
+  }
+  else if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+	  m_view_transform = translate(m_view_transform, fvec3{ 0.2f, 0.0f, 0.0f });
+	  uploadView();
+  }
+  
+
 }
 
 //handle delta mouse movement input
