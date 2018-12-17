@@ -47,8 +47,9 @@ public:
 	void renderQuad() const;
 
 	GLuint tex_handle;
-	GLuint rb_handle;
+
 	GLuint fbo_handle;
+
 
 	// ASSIGNMENT 5 (ADDITIONAL TASK) 
 	GLint effect = 0;
