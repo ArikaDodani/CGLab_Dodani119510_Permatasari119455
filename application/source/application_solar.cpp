@@ -256,12 +256,15 @@ void ApplicationSolar::render() const {
 
 
 	cout << "rendering..." << endl;
+
 	// bind shader to upload uniforms
 	for (int i = 0; i < children_list.size(); i++) {
 		Node planet_display = children_list[i];
-		uploadPlanets(planet_display,i);
+		uploadTexturedPlanets(planet_display,i);
 
   }
+
+
 
 
 //Stars are drawn here
@@ -406,6 +409,9 @@ star_shaders.at("stars").u_locs["ProjectionMatrix"] = -1;
   // requesting the uniform locations for quad shader
   m_shaders.at("quad").u_locs["texture"] = -1;
   m_shaders.at("quad").u_locs["effect"] = -1;
+  m_shaders.at("quad").u_locs["grayscale"] = -1;
+  m_shaders.at("quad").u_locs["blur"] = -1;
+
 
   cout << "the shaders have been initialized" << endl;
 }
@@ -728,12 +734,24 @@ void ApplicationSolar::renderQuad() const {
 	shader_program quad_program = m_shaders.at("quad");
 	glUseProgram(quad_program.handle);
 	glActiveTexture(GL_TEXTURE2);
-	glUniform1i(quad_program.u_locs.at("texture"), 2);
+
+	// here we update the uniforms and send data from the CPU to the GPU
+	//int texture_location = glGetUniformLocation(m_shaders.at("quad").handle, "texture");
+	//glUniform1i(texture_location, 2);
+
+	//int effect_location = glGetUniformLocation(m_shaders.at("quad").handle, "effect");
+	//glUniform1iv(effect_location, 1, &effect);
+
+
+	glUniform1i(quad_program.u_locs.at("texture"), 4);
 	glUniform1iv(quad_program.u_locs.at("effect"), 1, &effect);
+	glUniform1iv(quad_program.u_locs.at("grayscale"), 1, &grayscale);
+	glUniform1iv(quad_program.u_locs.at("blur"), 1, &blur);
 	glDrawArrays(quad_object.draw_mode, NULL, quad_object.num_elements);
 }
-
+// creating a quad geometry for the color texture
 void ApplicationSolar::initializeQuadGeometry() {
+	// here we are creating the geometry of the quad
 	std::vector<GLfloat> quad{
 		-1.0, -1.0, 0.0,
 		1.0, -1.0, 0.0,
@@ -781,7 +799,54 @@ void ApplicationSolar::keyCallback(int key, int action, int mods) {
 	  m_view_transform = translate(m_view_transform, fvec3{ 0.2f, 0.0f, 0.0f });
 	  uploadView();
   }
-  
+
+  //ASSIGNMENT 5 (ADDITIONAL TASK)
+
+  else if (key == GLFW_KEY_X) {
+	  if (effect == 1) {
+		  effect = 0;
+	  }
+	  else {
+		  effect = 1;
+	  }
+	  uploadView();
+  }
+  else if (key == GLFW_KEY_Y) {
+	  // vertical
+	  if (effect == 2) {
+		  effect = 0;
+	  }
+	  else {
+		  effect = 2;
+	  }
+	  uploadView();
+
+  }
+  else if (key == GLFW_KEY_G) {
+	  // grayscale
+	  if (grayscale == 1) {
+		  grayscale = 0;
+	  }
+	  else {
+		  grayscale = 1;
+	  }
+	  uploadView();
+
+  }
+
+  else if (key == GLFW_KEY_B) {
+	  // blur
+	  if (blur == 1) {
+		  blur = 0;
+	  }
+	  else {
+		  blur = 1;
+	  }
+	  uploadView();
+
+  }
+
+
 
 }
 

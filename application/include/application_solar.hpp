@@ -49,7 +49,11 @@ public:
 	GLuint tex_handle;
 	GLuint rb_handle;
 	GLuint fbo_handle;
+
+	// ASSIGNMENT 5 (ADDITIONAL TASK) 
 	GLint effect = 0;
+	GLint grayscale = 0;
+	GLint blur = 0;
 
 
 	vector<Node> children_list;
