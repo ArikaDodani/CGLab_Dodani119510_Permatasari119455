@@ -514,7 +514,8 @@ void ApplicationSolar::initializeGeometry() {
   glEnableVertexAttribArray(2);
   glVertexAttribPointer(2, model::TEXCOORD.components, model::TEXCOORD.type, GL_FALSE, planet_model.vertex_bytes, planet_model.offsets[model::TEXCOORD]);
   // .....................................................................................................
-
+  cout << "VERTEX BYTE PLANET MODEL" << " " << planet_model.vertex_bytes << endl;
+  cout << "offset PLANET MODEL" << " " << planet_model.offsets[model::TEXCOORD] << endl;
    // generate generic buffer
   glGenBuffers(1, &planet_object.element_BO);
   // bind this as an vertex array buffer containing all attributes
@@ -837,7 +838,7 @@ void ApplicationSolar::initializeQuadGeometry() {
 
 	//activate the second attribute on gpu
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, model::TEXCOORD.components, model::TEXCOORD.type, GL_FALSE, sizeof(float) *2, 0);
+	glVertexAttribPointer(1, model::TEXCOORD.components, model::TEXCOORD.type, GL_FALSE, sizeof(float) *2, (GLvoid*)(3 * sizeof(float)));
 
 
 	quad_object.draw_mode = GL_TRIANGLE_STRIP;
