@@ -1,7 +1,7 @@
 #version 150
 
 in vec2 pass_texture;
-flat in int pass_effect;
+flat in int pass_mirror;
 flat in int pass_grayscale;
 flat in int pass_blur;
 
@@ -36,6 +36,7 @@ void main()
     
     vec3 sampleTexture[9];
     // Assignment 5 (Additional task)
+
     // blur effect 
 
     if (pass_blur == 1) {
@@ -51,12 +52,12 @@ void main()
 
 
      //mirroring
-    else if (pass_effect == 1) {
+    else if (pass_mirror == 1) {
         TexCoords.x = 1 - TexCoords.x;
         vec3 rgb = texture(Texture, TexCoords).rgb;
         out_Color = vec4(rgb.r, rgb.g, rgb.b, 1);
 
-    } else if (pass_effect == 2) {
+    } else if (pass_mirror == 2) {
         TexCoords.y = 1 - TexCoords.y;
         vec3 rgb = texture(Texture, TexCoords).rgb;
         out_Color = vec4(rgb.r, rgb.g, rgb.b, 1);

@@ -407,8 +407,8 @@ star_shaders.at("stars").u_locs["ProjectionMatrix"] = -1;
   m_shaders.emplace("quad", shader_program{ {{GL_VERTEX_SHADER,m_resource_path + "shaders/quad.vert"},
 									 {GL_FRAGMENT_SHADER, m_resource_path + "shaders/quad.frag"}} });
   // requesting the uniform locations for quad shader
-  m_shaders.at("quad").u_locs["texture"] = -1;
-  m_shaders.at("quad").u_locs["effect"] = -1;
+  m_shaders.at("quad").u_locs["Texture"] = -1;
+  m_shaders.at("quad").u_locs["mirror"] = -1;
   m_shaders.at("quad").u_locs["grayscale"] = -1;
   m_shaders.at("quad").u_locs["blur"] = -1;
 
@@ -727,12 +727,12 @@ void ApplicationSolar::initializeFrameBuffer() {
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 
 
 
-	//GLenum draw_buffer[1] = { GL_COLOR_ATTACHMENT0 };
-	//glDrawBuffers(1, draw_buffer);
+	GLenum draw_buffer[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, draw_buffer);
 
 	cout << "Frame buffer object has been initialized" << endl;
 }
@@ -742,53 +742,55 @@ void ApplicationSolar::renderQuad() const {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	//We then draw this texture over a simple quad that spans the whole screen. 
 
+
+	//We then draw this texture over a simple quad that spans the whole screen. 
 	//We are now going to render the scene into a color texture attached to a framebuffer object we created
 	// first we create an actual framebuffer object and bind it,
-	GLuint framebuffer;
-	GLuint texColorBuffer;
+	//GLuint framebuffer;
+	//GLuint texColorBuffer;
 
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	int width = 400;
-	int height = 600;
+	//glGenFramebuffers(1, &framebuffer);
+	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	//int width = 400;
+	//int height = 600;
 
 
 	//texture image that we attach as a color attachment to the framebuffer. 
 	// generating texture again
-	glGenTextures(1, &texColorBuffer);
+//	glGenTextures(1, &texColorBuffer);
 	// binding the 2D texture
-	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+	//glBindTexture(GL_TEXTURE_2D, texColorBuffer);
 	//We set the texture's dimensions equal to the width and height of the window and keep its data uninitialized:
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	// passing tge min and mag filter
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glBindTexture(GL_TEXTURE_2D, 0);
 
 	// attach it to currently bound framebuffer object
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
 
 
 	// now we're creating it as a depth and stencil attachment renderbuffer object
-	GLuint rb_handle;
-	glGenRenderbuffers(1, &rb_handle);
+	//GLuint rb_handle;
+	//glGenRenderbuffers(1, &rb_handle);
 	// we bind the render buffer object 
-	glBindRenderbuffer(GL_RENDERBUFFER, rb_handle);
+	//glBindRenderbuffer(GL_RENDERBUFFER, rb_handle);
 	// Creating a depth and stencil renderbuffer object
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
 	//Once we've allocated enough memory for the renderbuffer object we can unbind the renderbuffer.
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	//we attach the renderbuffer object to the depth and stencil attachment of the framebuffer
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rb_handle);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rb_handle);
 	// to check if the framebuffer is actually complete 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	//	std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	
+
 
 	// here we are activating the vertex array of the quad object
 	glBindVertexArray(quad_object.vertex_AO);
@@ -798,11 +800,14 @@ void ApplicationSolar::renderQuad() const {
 
 
 	// here we update the uniforms and send data from the CPU to the GPU 
-	glUniform1i(quad_program.u_locs.at("texture"), 4);
-	glUniform1iv(quad_program.u_locs.at("effect"), 1, &effect);
+	glUniform1i(quad_program.u_locs.at("Texture"), 2);
+	glUniform1iv(quad_program.u_locs.at("mirror"), 1, &mirror);
 	glUniform1iv(quad_program.u_locs.at("grayscale"), 1, &grayscale);
 	glUniform1iv(quad_program.u_locs.at("blur"), 1, &blur);
+
 	glDrawArrays(quad_object.draw_mode, NULL, quad_object.num_elements);
+
+	//cout << "geometries have been created" << endl;
 
 }
 // creating a quad geometry for the color texture
@@ -831,6 +836,8 @@ void ApplicationSolar::initializeQuadGeometry() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(float) * 3, 0);
 	quad_object.draw_mode = GL_TRIANGLE_STRIP;
 	quad_object.num_elements = GLsizei(quad.size() / 3);
+
+	cout << "quadgeometry has been initialized" << endl;
 }
 
 
@@ -859,23 +866,23 @@ void ApplicationSolar::keyCallback(int key, int action, int mods) {
   //ASSIGNMENT 5 (ADDITIONAL TASK)
 
   else if (key == GLFW_KEY_X) {
-	  if (effect == 1) {
-		  effect = 0;
+	  if (mirror == 1) {
+		  mirror = 0;
 	  }
 	  else {
-		  effect = 1;
+		  mirror = 1;
 	  }
-	  uploadView();
+	  //uploadView();
   }
   else if (key == GLFW_KEY_Y) {
 	  // vertical
-	  if (effect == 2) {
-		  effect = 0;
+	  if (mirror == 2) {
+		  mirror = 0;
 	  }
 	  else {
-		  effect = 2;
+		  mirror = 2;
 	  }
-	  uploadView();
+	  //uploadView();
 
   }
   else if (key == GLFW_KEY_G) {
@@ -886,7 +893,7 @@ void ApplicationSolar::keyCallback(int key, int action, int mods) {
 	  else {
 		  grayscale = 1;
 	  }
-	  uploadView();
+	  //uploadView();
 
   }
 
@@ -898,7 +905,7 @@ void ApplicationSolar::keyCallback(int key, int action, int mods) {
 	  else {
 		  blur = 1;
 	  }
-	  uploadView();
+	  //uploadView();
 
   }
 

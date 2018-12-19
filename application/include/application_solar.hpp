@@ -52,7 +52,7 @@ public:
 
 
 	// ASSIGNMENT 5 (ADDITIONAL TASK) 
-	GLint effect = 0;
+	GLint mirror = 0;
 	GLint grayscale = 0;
 	GLint blur = 0;
 
