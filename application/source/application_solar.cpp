@@ -191,8 +191,8 @@ void ApplicationSolar::uploadTexturedPlanets(Node planet_display, int i) const {
 	// here we update the uniforms and send data from the CPU to the GPU
 	int sampler_location = glGetUniformLocation(m_shaders.at("planet").handle, "texture_object");
 	//cout << sampler_location << endl;
-	//glUniform1i(sampler_location,i);
-	glUniform1i(glGetUniformLocation(m_shaders.at("planet").handle, "texture_object"), i);
+	glUniform1i(sampler_location,1);
+	//glUniform1i(glGetUniformLocation(m_shaders.at("planet").handle, "texture_object"), 1);
 
 
 	//activate textures
@@ -302,6 +302,7 @@ void ApplicationSolar::uploadView() {
   glUseProgram(skybox_shaders.at("skybox").handle);
   glUseProgram(star_shaders.at("stars").handle);
   glUseProgram(m_shaders.at("planet").handle);
+ 
 
   // upload matrix to gpu
   glUniformMatrix4fv(m_shaders.at("planet").u_locs.at("ViewMatrix"),1, GL_FALSE, glm::value_ptr(view_matrix));
@@ -690,10 +691,10 @@ void ApplicationSolar::initializeFrameBuffer() {
 
 	// first we are creating and initializing the frame buffer object
 	glGenFramebuffers(1, &fbo_handle);
+
 	//By binding to the GL_FRAMEBUFFER target all the next read and write framebuffer operations will affect the currently bound framebuffer. 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_handle);
 
-	// next, we have to attach atleast one buffer  and have atleast one color attachment to the buffer
 
 	// texture attachment
 	// generate texture
@@ -701,26 +702,21 @@ void ApplicationSolar::initializeFrameBuffer() {
 	glGenTextures(1, &tex_handle);
 	glBindTexture(GL_TEXTURE_2D, tex_handle);
 	//here is that we set the dimensions equal to the screen size\and we pass NULL as the texture's data parameter.
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	//Now that we've created a texture we need to actually attach it to the framebuffer
-	// attaching below to currently bound framebuffer object
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_handle, 0);
+	// we have to attach atleast one buffer  and have atleast one color attachment to the buffer
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex_handle, 0);
 
-	GLuint rb_handle;
+	//GLuint rb_handle;
 	glGenRenderbuffers(1, &rb_handle);
 	// we bind the render buffer object 
 	glBindRenderbuffer(GL_RENDERBUFFER, rb_handle);
 
 	// Creating a depth object
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-
-
-	glGenFramebuffers(1, &fbo_handle);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo_handle);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex_handle, 0);
 
 	// Now we attach the renderbuffer object
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rb_handle);
@@ -742,13 +738,13 @@ void ApplicationSolar::renderQuad() const {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 
-	//We then draw this texture over a simple quad that spans the whole screen. 
-	//We are now going to render the scene into a color texture attached to a framebuffer object we created
-	// first we create an actual framebuffer object and bind it,
+	////We then draw this texture over a simple quad that spans the whole screen. 
+	////We are now going to render the scene into a color texture attached to a framebuffer object we created
+	//// first we create an actual framebuffer object and bind it,
 	//GLuint framebuffer;
 	//GLuint texColorBuffer;
 
@@ -758,38 +754,40 @@ void ApplicationSolar::renderQuad() const {
 	//int height = 600;
 
 
-	//texture image that we attach as a color attachment to the framebuffer. 
-	// generating texture again
-//	glGenTextures(1, &texColorBuffer);
-	// binding the 2D texture
+	////texture image that we attach as a color attachment to the framebuffer. 
+	//// generating texture again
+	//glGenTextures(1, &texColorBuffer);
+	//// binding the 2D texture
 	//glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-	//We set the texture's dimensions equal to the width and height of the window and keep its data uninitialized:
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	// passing tge min and mag filter
+	////We set the texture's dimensions equal to the width and height of the window and keep its data uninitialized:
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	//// passing tge min and mag filter
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//glBindTexture(GL_TEXTURE_2D, 0);
 
-	// attach it to currently bound framebuffer object
+	//// attach it to currently bound framebuffer object
 	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
 
 
-	// now we're creating it as a depth and stencil attachment renderbuffer object
-	//GLuint rb_handle;
-	//glGenRenderbuffers(1, &rb_handle);
-	// we bind the render buffer object 
-	//glBindRenderbuffer(GL_RENDERBUFFER, rb_handle);
-	// Creating a depth and stencil renderbuffer object
+	//// now we're creating it as a depth and stencil attachment renderbuffer object
+	//GLuint rb_handle1;
+	//glGenRenderbuffers(1, &rb_handle1);
+	//// we bind the render buffer object 
+	//glBindRenderbuffer(GL_RENDERBUFFER, rb_handle1);
+	//// Creating a depth and stencil renderbuffer object
 	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-	//Once we've allocated enough memory for the renderbuffer object we can unbind the renderbuffer.
+	////Once we've allocated enough memory for the renderbuffer object we can unbind the renderbuffer.
 	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	//we attach the renderbuffer object to the depth and stencil attachment of the framebuffer
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rb_handle);
-	// to check if the framebuffer is actually complete 
+	////we attach the renderbuffer object to the depth and stencil attachment of the framebuffer
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rb_handle1);
+	//// to check if the framebuffer is actually complete 
 	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	//	std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-	
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//
 
 
 	// here we are activating the vertex array of the quad object
@@ -810,6 +808,7 @@ void ApplicationSolar::renderQuad() const {
 	//cout << "geometries have been created" << endl;
 
 }
+
 // creating a quad geometry for the color texture
 void ApplicationSolar::initializeQuadGeometry() {
 	// here we are creating the geometry of the quad
@@ -831,9 +830,16 @@ void ApplicationSolar::initializeQuadGeometry() {
 	glBindVertexArray(quad_object.vertex_AO);
 	glBindBuffer(GL_ARRAY_BUFFER, quad_object.vertex_BO);
 
-	// attribute array
+	// activate the first attribute on gpu
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(float) * 3, 0);
+
+
+	//activate the second attribute on gpu
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, model::TEXCOORD.components, model::TEXCOORD.type, GL_FALSE, sizeof(float) *2, 0);
+
+
 	quad_object.draw_mode = GL_TRIANGLE_STRIP;
 	quad_object.num_elements = GLsizei(quad.size() / 3);
 

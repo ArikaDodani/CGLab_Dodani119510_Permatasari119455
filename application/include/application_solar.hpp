@@ -47,7 +47,7 @@ public:
 	void renderQuad() const;
 
 	GLuint tex_handle;
-
+	GLuint rb_handle;
 	GLuint fbo_handle;
 
 

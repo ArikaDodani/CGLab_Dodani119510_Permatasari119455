@@ -4,8 +4,10 @@ in vec2 pass_texture;
 flat in int pass_mirror;
 flat in int pass_grayscale;
 flat in int pass_blur;
+in vec2 pass_texcoords;
 
 uniform sampler2D Texture;
+
 
 out vec4 out_Color;
 
@@ -13,7 +15,7 @@ const float offset = 1.0 / 300.0;
 
 void main() 
 {
-    vec2 TexCoords = pass_texture;
+    vec2 TexCoords = pass_texcoords;  
 
     // offset for the kernel effect to implement blur
     vec2 offsets[9] = vec2[](
