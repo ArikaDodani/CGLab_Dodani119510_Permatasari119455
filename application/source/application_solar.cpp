@@ -746,7 +746,6 @@ void ApplicationSolar::renderQuad() const {
 
 
 
-
 	//We then draw this texture over a simple quad that spans the whole screen. 
 	//We are now going to render the scene into a color texture attached to a framebuffer object we created
 	// first we create an actual framebuffer object and bind it,
@@ -763,18 +762,27 @@ void ApplicationSolar::renderQuad() const {
 	// generating texture again
 	glGenTextures(1, &texColorBuffer);
 	// binding the 2D texture
+	glActiveTexture(GL_TEXTURE15);
 	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-	//We set the texture's dimensions equal to the width and height of the window and keep its data uninitialized:
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+
+
+	pixel_data image = texture_loader::file(m_resource_path + "textures/space.jpg");
+	// to create a texture behind the scene. Here we want to generate one texture and then get the ID
+
+	//We set the texture's dimensions equal to the width and height of the window and map a texture:
+	glTexImage2D(GL_TEXTURE_2D, 0, image.channels, image.width, image.height, 0, image.channels, image.channel_type, image.ptr());
+
+
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	// passing the min and mag filter
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// attach it to currently bound framebuffer object
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
 
-
+	glBindTexture(GL_TEXTURE_2D, 0);
 	// now we're creating it as a depth and stencil attachment renderbuffer object
 	GLuint rb_handle1;
 	glGenRenderbuffers(1, &rb_handle1);
@@ -876,7 +884,7 @@ void ApplicationSolar::keyCallback(int key, int action, int mods) {
 
   //ASSIGNMENT 5 (ADDITIONAL TASK)
 
-  else if (key == GLFW_KEY_X) {
+  else if (key == GLFW_KEY_8) {
 	  if (mirror == 1) {
 		  mirror = 0;
 	  }
@@ -885,7 +893,7 @@ void ApplicationSolar::keyCallback(int key, int action, int mods) {
 	  }
 	  //uploadView();
   }
-  else if (key == GLFW_KEY_Y) {
+  else if (key == GLFW_KEY_9) {
 	  // vertical
 	  if (mirror == 2) {
 		  mirror = 0;
@@ -896,7 +904,7 @@ void ApplicationSolar::keyCallback(int key, int action, int mods) {
 	  //uploadView();
 
   }
-  else if (key == GLFW_KEY_G) {
+  else if (key == GLFW_KEY_7) {
 	  // grayscale
 	  if (grayscale == 1) {
 		  grayscale = 0;
@@ -908,7 +916,7 @@ void ApplicationSolar::keyCallback(int key, int action, int mods) {
 
   }
 
-  else if (key == GLFW_KEY_B) {
+  else if (key == GLFW_KEY_0) {
 	  // blur
 	  if (blur == 1) {
 		  blur = 0;
